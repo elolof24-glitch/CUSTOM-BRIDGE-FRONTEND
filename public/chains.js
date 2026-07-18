@@ -71,7 +71,6 @@ window.CHAIN_CONFIG = [
     rpc: "https://rpc.blockdaemon.mainnet.arc.io",
     logo: "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Ccircle cx='9' cy='9' r='9' fill='%235b8def'/%3E%3C/svg%3E",
     currencySymbol: "USDC",
-    custom: true,
     noRoute: true
   }
 ];
