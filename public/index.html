@@ -3,70 +3,177 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Custom Across Bridge</title>
+<title>Custom Bridge</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css" />
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Inter', -apple-system, Segoe UI, Roboto, sans-serif; background: #05060a; color: #f2f3f7; min-height: 100vh; display: flex; justify-content: center; align-items: flex-start; padding: 60px 20px; position: relative; overflow-x: hidden; }
+.bg-glow { position: fixed; top: -200px; left: 50%; width: 900px; height: 600px; transform: translateX(-50%); background: radial-gradient(circle, rgba(91,141,239,0.25) 0%, rgba(91,141,239,0) 70%); pointer-events: none; z-index: 0; }
+.app { position: relative; z-index: 1; width: 420px; }
+.topbar { display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px; }
+.brand { display:flex; align-items:center; gap:8px; font-weight:700; font-size:17px; letter-spacing:-0.3px; }
+.logo-dot { width:10px; height:10px; border-radius:50%; background: linear-gradient(135deg,#5b8def,#8f6bf0); box-shadow: 0 0 12px rgba(91,141,239,.7); }
+.card { background: linear-gradient(180deg, #10121b 0%, #0c0e15 100%); border: 1px solid #1e2230; border-radius: 20px; padding: 20px; box-shadow: 0 20px 60px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.03); }
+.tabs { display:flex; justify-content:space-between; margin-bottom: 16px; align-items:center; }
+.tab { font-size: 13px; font-weight:600; color:#8b93a7; padding: 6px 14px; border-radius: 8px; }
+.tab.active { color:#fff; background:#1a1d2a; }
+.panel { background: #0b0d14; border: 1px solid #1c2030; border-radius: 14px; padding: 14px 16px; position:relative; }
+.field-group + .field-group { margin-top: 8px; }
+.field-row { display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.field-label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color:#6c7488; font-weight:600; min-width: 62px; }
+.chain-pill { display:flex; align-items:center; gap:8px; background:#171a26; border:1px solid #262b3a; border-radius:10px; padding:6px 10px; cursor:pointer; font-weight:600; font-size:13px; user-select:none; }
+.chain-pill:hover { border-color:#5b8def70; }
+.chain-pill img { width:18px; height:18px; border-radius:50%; }
+.chevron { font-size:10px; color:#6c7488; margin-left:2px; }
+select, input { background: transparent; border: none; color: #f2f3f7; font-family: inherit; font-size: 14px; outline: none; }
+.amount-row { display:flex; align-items:center; gap:10px; margin-top: 10px; }
+.amount-input { flex: 1; font-size: 26px; font-weight: 700; min-width: 0; }
+.usd-value { font-size: 12px; color:#6c7488; margin-top:2px; }
+.token-select { display:flex; align-items:center; gap:6px; background: #171a26; border: 1px solid #262b3a; border-radius: 10px; padding: 8px 10px; font-weight: 600; cursor: pointer; white-space:nowrap; }
+.token-select img { width:18px; height:18px; border-radius:50%; background:#2a2f3f; object-fit:cover; }
+.token-wrap, .chain-wrap { position:relative; display:inline-block; }
+.addr-input { flex:1; font-size:13px; color:#c7cbd6; text-align:right; font-family: ui-monospace, monospace; }
+.addr-input::placeholder { color: #4a5062; }
+.swap-arrow { display:flex; justify-content:center; align-items:center; width: 34px; height: 34px; margin: -6px auto; background: #171a26; border: 3px solid #0c0e15; border-radius: 10px; color: #5b8def; position: relative; z-index: 2; cursor:pointer; }
+.quote-box { margin-top: 14px; background: #0b0d14; border: 1px solid #1c2030; border-radius: 12px; padding: 12px 14px; font-size: 12.5px; color: #a9b0c2; line-height: 1.6; }
+.quote-box .row { display:flex; justify-content:space-between; }
+.quote-box .ok { color: #3ecf8e; font-weight: 600; }
+.liq-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; padding:3px 8px; border-radius:6px; font-weight:600; }
+.liq-badge.good { background:#123324; color:#3ecf8e; }
+.liq-badge.none { background:#3a1418; color:#f0616b; }
+.primary-btn { width: 100%; margin-top: 14px; padding: 14px; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; background: linear-gradient(135deg, #5b8def, #7b6bf0); color: #fff; }
+.primary-btn.success { background: linear-gradient(135deg, #3ecf8e, #2ba873); }
+.status-line { margin-top: 12px; font-size: 12.5px; color: #7d859a; min-height: 16px; text-align: center; }
+.footnote { text-align:center; margin-top: 18px; font-size: 11px; color: #454b5c; }
+.addchain-link { font-size: 11px; color:#5b8def; cursor:pointer; font-weight:600; }
+.modal-backdrop { display:none; position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:30; align-items:center; justify-content:center; }
+.modal-backdrop.show { display:flex; }
+.modal { background:#10121b; border:1px solid #1e2230; border-radius:16px; padding:20px; width:340px; }
+.modal h3 { margin:0 0 12px; font-size:15px; }
+.modal label { display:block; font-size:11px; color:#6c7488; margin-top:10px; text-transform:uppercase; letter-spacing:.05em; font-weight:600; }
+.modal input { width:100%; background:#0b0d14; border:1px solid #1c2030; border-radius:8px; padding:8px; margin-top:4px; font-size:13px; color:#fff; }
+.modal-actions { display:flex; gap:8px; margin-top:16px; }
+.modal-actions button { flex:1; padding:10px; border-radius:8px; border:none; cursor:pointer; font-weight:600; }
+.btn-cancel { background:#1a1d2a; color:#c7cbd6; }
+.btn-add { background:#5b8def; color:#fff; }
+.modal-note { font-size:11px; color:#5b5f70; margin-top:10px; line-height:1.5; }
+.custom-tag { font-size:9px; background:#2a2f3f; color:#9aa3b2; padding:1px 5px; border-radius:5px; margin-left:4px; }
+.dropdown { display:none; position:absolute; top:calc(100% + 6px); right:0; background:#12141c; border:1px solid #262b3a; border-radius:10px; padding:6px; z-index:50; width:210px; box-shadow:0 10px 30px rgba(0,0,0,.5); max-height:260px; overflow-y:auto; }
+.dropdown-addtoken { border-top:1px solid #23273350; margin-top:4px; padding-top:8px; }
+.dropdown-addtoken input { width:100%; background:#0b0d14; border:1px solid #1c2030; border-radius:6px; padding:6px 8px; font-size:12px; color:#fff; margin-top:6px; }
+.dropdown-addtoken button { width:100%; margin-top:6px; padding:6px; border:none; border-radius:6px; background:#5b8def; color:#fff; font-weight:600; font-size:12px; cursor:pointer; }
+.dropdown.show { display:block; }
+.dropdown-item { display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:600; }
+.dropdown-item:hover { background:#1a1d2a; }
+.dropdown-item img { width:18px; height:18px; border-radius:50%; }
+</style>
 </head>
 <body>
   <div class="bg-glow"></div>
   <div class="app">
     <header class="topbar">
-      <div class="brand">
-        <div class="logo-dot"></div>
-        <span>Bridge</span>
-      </div>
-      <button id="connectBtn" class="wallet-btn">
-        <span class="dot offline" id="walletDot"></span>
-        <span id="walletLabel">Connect Wallet</span>
-      </button>
+      <div class="brand"><div class="logo-dot"></div><span>Bridge</span></div>
     </header>
-
     <main class="card">
-      <div class="tabs">
-        <div class="tab active">Swap</div>
-      </div>
+      <div class="tabs"><div class="tab active">Swap</div><div class="addchain-link" id="addChainLink">+ Add custom chain</div></div>
 
       <div class="field-group panel">
         <div class="field-row">
           <span class="field-label">From</span>
-          <select id="fromChain" class="chain-select"></select>
+          <div class="chain-wrap">
+            <div class="chain-pill" id="fromChainPill">
+              <img id="fromChainLogo" src="" />
+              <span id="fromChainName"></span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="dropdown" id="fromDropdown"></div>
+          </div>
         </div>
         <div class="amount-row">
-          <input id="amount" type="number" placeholder="0.0" class="amount-input" />
-          <select id="token" class="token-select"></select>
+          <div style="flex:1; min-width:0;">
+            <input id="amount" class="amount-input" type="text" inputmode="decimal" placeholder="0.0" value="1.5" />
+            <div class="usd-value" id="fromUsd">≈ $1.50</div>
+          </div>
+          <div class="token-wrap">
+            <div class="token-select" id="tokenPill">
+              <img id="tokenLogo" src="" />
+              <span id="tokenName"></span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="dropdown" id="tokenDropdown"></div>
+          </div>
+        </div>
+        <div class="field-row" style="margin-top:10px">
+          <span class="field-label">Sender</span>
+          <input id="senderAddr" class="addr-input" placeholder="0x... (maker / your address)" />
         </div>
       </div>
 
-      <div class="swap-arrow">
-        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 5v14M19 12l-7 7-7-7"/>
-        </svg>
-      </div>
+      <div class="swap-arrow" id="flipBtn">↓</div>
 
       <div class="field-group panel">
         <div class="field-row">
           <span class="field-label">To</span>
-          <select id="toChain" class="chain-select"></select>
+          <div class="chain-wrap">
+            <div class="chain-pill" id="toChainPill">
+              <img id="toChainLogo" src="" />
+              <span id="toChainName"></span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="dropdown" id="toDropdown"></div>
+          </div>
         </div>
-        <div class="field-row">
-          <span class="field-label">Recipient</span>
-          <input id="recipient" type="text" placeholder="0x... (defaults to you)" class="recipient-input" />
+        <div class="amount-row" style="margin-top:8px">
+          <div style="flex:1; min-width:0;">
+            <div class="amount-input" id="receiveAmount" style="font-size:26px;">0.0</div>
+            <div class="usd-value" id="toUsd">≈ $0.00</div>
+          </div>
+          <div class="token-wrap">
+            <div class="token-select" id="toTokenPill">
+              <img id="toTokenLogo" src="" />
+              <span id="toTokenName"></span>
+              <span class="chevron">▾</span>
+            </div>
+            <div class="dropdown" id="toTokenDropdown"></div>
+          </div>
+        </div>
+        <div class="field-row" style="margin-top:8px">
+          <span class="field-label">Receiver</span>
+          <input id="receiverAddr" class="addr-input" placeholder="0x... (recipient address)" />
+        </div>
+        <div class="field-row" style="margin-top:8px">
+          <span id="liqBadge" class="liq-badge good">● Liquidity OK</span>
         </div>
       </div>
 
-      <div id="quoteBox" class="quote-box hidden"></div>
+      <div class="quote-box">
+        <div class="row"><span>You send</span><span id="sendSummary">1.5 USDC (~$1.50)</span></div>
+        <div class="row"><span>Total fees</span><span>0.18%</span></div>
+        <div class="row"><span>Est. fill time</span><span>12s</span></div>
+        <div class="row"><span>Balance</span><span class="ok">OK</span></div>
+      </div>
 
-      <button id="quoteBtn" class="primary-btn" disabled>Get Quote</button>
-      <button id="executeBtn" class="primary-btn success hidden" disabled>Confirm Bridge</button>
-
-      <div id="status" class="status-line"></div>
+      <button class="primary-btn success" id="confirmBtn">Confirm Bridge</button>
+      <div class="status-line" id="status">Enter sender + receiver addresses, then confirm.</div>
     </main>
-
     <footer class="footnote">Powered by Across Protocol API</footer>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
-  <script src="app.js"></script>
+  <div class="modal-backdrop" id="addChainModal">
+    <div class="modal">
+      <h3>Add Custom Chain</h3>
+      <label>Chain name</label><input id="ccName" placeholder="e.g. Arc" />
+      <label>Chain ID</label><input id="ccId" placeholder="e.g. 5042" />
+      <label>RPC URL</label><input id="ccRpc" placeholder="https://rpc.arc.network" />
+      <div class="modal-actions">
+        <button class="btn-cancel" id="ccCancel">Cancel</button>
+        <button class="btn-add" id="ccAdd">Add Chain</button>
+      </div>
+      <div class="modal-note">Adds the chain to the dropdown for reference only. Bridge routes activate automatically once Across officially lists the chain in their live API — this app never hardcodes unreleased contracts.</div>
+    </div>
+  </div>
+
+<script src="app.js"></script>
 </body>
 </html>
