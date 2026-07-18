@@ -1,350 +1,423 @@
-const connectBtn = document.getElementById("connectBtn");
-const walletLabel = document.getElementById("walletLabel");
-const walletDot = document.getElementById("walletDot");
+const FALLBACK_LOGO =
+  "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Ccircle cx='9' cy='9' r='9' fill='%235b8def'/%3E%3C/svg%3E";
 
-const fromChainEl = document.getElementById("fromChain");
-const toChainEl = document.getElementById("toChain");
-const tokenEl = document.getElementById("token");
+let CHAINS = [
+  { id: "ethereum", name: "Ethereum", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/info/logo.png" },
+  { id: "arbitrum", name: "Arbitrum", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/arbitrum/info/logo.png" },
+  { id: "base", name: "Base", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/base/info/logo.png" },
+  { id: "optimism", name: "Optimism", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/optimism/info/logo.png" },
+  { id: "polygon", name: "Polygon", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/polygon/info/logo.png" },
+  { id: "avalanche", name: "Avalanche", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/avalanchec/info/logo.png" },
+  { id: "solana", name: "Solana", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/solana/info/logo.png" },
+  { id: "arc", name: "Arc", logo: FALLBACK_LOGO, custom: true, noRoute: true },
+  { id: "robinhood", name: "Robinhood Chain", logo: FALLBACK_LOGO, custom: true, noRoute: true }
+];
+
+const TOKENS_BY_CHAIN = {
+  ethereum: [
+    { symbol: "USDC", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png", price: 1.0 },
+    { symbol: "ETH", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/info/logo.png", price: 1840 },
+    { symbol: "USDT", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/assets/0xdAC17F958D2ee523a2206206994597C13D831ec7/logo.png", price: 1.0 }
+  ],
+  arbitrum: [
+    { symbol: "USDC", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png", price: 1.0 },
+    { symbol: "ETH", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/info/logo.png", price: 1840 },
+    { symbol: "ARB", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/arbitrum/info/logo.png", price: 0.75 }
+  ],
+  base: [
+    { symbol: "USDC", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png", price: 1.0 },
+    { symbol: "ETH", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/info/logo.png", price: 1840 }
+  ],
+  optimism: [
+    { symbol: "USDC", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png", price: 1.0 },
+    { symbol: "OP", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/optimism/info/logo.png", price: 1.9 },
+    { symbol: "ETH", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/info/logo.png", price: 1840 }
+  ],
+  polygon: [
+    { symbol: "USDC", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png", price: 1.0 },
+    { symbol: "MATIC", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/polygon/info/logo.png", price: 0.45 }
+  ],
+  avalanche: [
+    { symbol: "USDC", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png", price: 1.0 },
+    { symbol: "AVAX", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/avalanchec/info/logo.png", price: 28 }
+  ],
+  solana: [
+    { symbol: "SOL", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/solana/info/logo.png", price: 75 },
+    { symbol: "USDC", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/assets/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/logo.png", price: 1.0 }
+  ],
+  arc: [],
+  robinhood: [
+    { symbol: "USDG", logo: FALLBACK_LOGO, price: 1.0 },
+    { symbol: "ETH", logo: "https://cdn.jsdelivr.net/gh/trustwallet/assets@master/blockchains/ethereum/info/logo.png", price: 1840 }
+  ]
+};
+
+function tokensFor(chain) {
+  return TOKENS_BY_CHAIN[chain.id] || [];
+}
+
+let fromChain = CHAINS[0];
+let toChain = CHAINS[2];
+let currentToken = TOKENS_BY_CHAIN.ethereum[0];
+let currentToToken = TOKENS_BY_CHAIN.base[0];
+
+const fromDropdown = document.getElementById("fromDropdown");
+const toDropdown = document.getElementById("toDropdown");
+const tokenDropdown = document.getElementById("tokenDropdown");
+const toTokenDropdown = document.getElementById("toTokenDropdown");
+
 const amountEl = document.getElementById("amount");
-const recipientEl = document.getElementById("recipient");
-
-const quoteBtn = document.getElementById("quoteBtn");
-const executeBtn = document.getElementById("executeBtn");
-const quoteBox = document.getElementById("quoteBox");
+const fromUsdEl = document.getElementById("fromUsd");
+const sendSummaryEl = document.getElementById("sendSummary");
 const statusEl = document.getElementById("status");
 
-let provider = null;
-let signer = null;
-let userAddress = null;
-
-let chains = [];
-let tokensByChain = {};
-let currentQuote = null;
-
-function setStatus(msg) {
-  statusEl.textContent = msg || "";
+function safeLogo(url) {
+  return url || FALLBACK_LOGO;
 }
 
-function shortAddress(addr) {
-  if (!addr) return "";
-  return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+function setImg(id, url) {
+  const img = document.getElementById(id);
+  if (!img) return;
+  img.onerror = function () {
+    this.onerror = null;
+    this.src = FALLBACK_LOGO;
+  };
+  img.src = safeLogo(url);
 }
 
-function formatAmount(value, decimals = 6) {
-  const num = Number(value);
-  if (!Number.isFinite(num)) return "-";
-  return num.toLocaleString(undefined, { maximumFractionDigits: decimals });
+function renderDropdown(el, onPick) {
+  el.innerHTML = CHAINS.map(c => `
+    <div class="dropdown-item" data-id="${c.id}">
+      <img src="${safeLogo(c.logo)}" onerror="this.onerror=null;this.src='${FALLBACK_LOGO}'" />
+      <span>${c.name}</span>
+      ${c.custom ? '<span class="custom-tag">custom</span>' : ""}
+    </div>
+  `).join("");
+
+  el.querySelectorAll(".dropdown-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const chain = CHAINS.find(c => c.id === item.dataset.id);
+      onPick(chain);
+      el.classList.remove("show");
+    });
+  });
 }
 
-function setWalletConnected(address) {
-  walletLabel.textContent = shortAddress(address);
-  walletDot.classList.remove("offline");
-  walletDot.classList.add("online");
+function refreshDropdowns() {
+  renderDropdown(fromDropdown, setFromChain);
+  renderDropdown(toDropdown, setToChain);
 }
 
-function setWalletDisconnected() {
-  walletLabel.textContent = "Connect Wallet";
-  walletDot.classList.remove("online");
-  walletDot.classList.add("offline");
+function setFromChain(chain) {
+  fromChain = chain;
+  setImg("fromChainLogo", chain.logo);
+  document.getElementById("fromChainName").textContent = chain.name;
+
+  const list = tokensFor(chain);
+  currentToken = list[0] || { symbol: "-", logo: FALLBACK_LOGO, price: 0 };
+  setImg("tokenLogo", currentToken.logo);
+  document.getElementById("tokenName").textContent = currentToken.symbol;
+
+  updateUsd();
+  checkLiquidity();
 }
 
-async function apiJson(url) {
-  const res = await fetch(url);
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data?.error || data?.message || "Request failed");
+function setToChain(chain) {
+  toChain = chain;
+  setImg("toChainLogo", chain.logo);
+  document.getElementById("toChainName").textContent = chain.name;
+
+  const list = tokensFor(chain);
+  currentToToken = list[0] || { symbol: "-", logo: FALLBACK_LOGO, price: 0 };
+  setImg("toTokenLogo", currentToToken.logo);
+  document.getElementById("toTokenName").textContent = currentToToken.symbol;
+
+  checkLiquidity();
+  updateReceiveEstimate();
+}
+
+const ADD_TOKEN_ROW = (idPrefix) => `
+  <div class="dropdown-addtoken">
+    <input id="${idPrefix}CustomAddr" placeholder="Paste token contract address" />
+    <button id="${idPrefix}CustomAddBtn">+ Add custom token</button>
+  </div>
+`;
+
+function renderTokenDropdown() {
+  const list = tokensFor(fromChain);
+  const items = list.length
+    ? list.map(t => `
+      <div class="dropdown-item" data-symbol="${t.symbol}">
+        <img src="${safeLogo(t.logo)}" onerror="this.onerror=null;this.src='${FALLBACK_LOGO}'" />
+        <span>${t.symbol}</span>
+      </div>
+    `).join("")
+    : `<div class="dropdown-item" style="cursor:default;color:#6c7488">No known tokens yet</div>`;
+
+  tokenDropdown.innerHTML = items + ADD_TOKEN_ROW("from");
+
+  tokenDropdown.querySelectorAll(".dropdown-item[data-symbol]").forEach(item => {
+    item.addEventListener("click", () => {
+      currentToken = list.find(t => t.symbol === item.dataset.symbol);
+      setImg("tokenLogo", currentToken.logo);
+      document.getElementById("tokenName").textContent = currentToken.symbol;
+      updateUsd();
+      tokenDropdown.classList.remove("show");
+    });
+  });
+
+  const addBtn = document.getElementById("fromCustomAddBtn");
+  if (addBtn) {
+    addBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const addr = document.getElementById("fromCustomAddr").value.trim();
+      if (!addr || addr.length < 8) {
+        alert("Paste a valid contract address");
+        return;
+      }
+      const symbol = addr.slice(0, 4).toUpperCase() + "…" + addr.slice(-4);
+      const newToken = { symbol, logo: FALLBACK_LOGO, price: 0, custom: true, address: addr };
+      if (!TOKENS_BY_CHAIN[fromChain.id]) TOKENS_BY_CHAIN[fromChain.id] = [];
+      TOKENS_BY_CHAIN[fromChain.id].push(newToken);
+      currentToken = newToken;
+      setImg("tokenLogo", newToken.logo);
+      document.getElementById("tokenName").textContent = newToken.symbol;
+      updateUsd();
+      tokenDropdown.classList.remove("show");
+    });
   }
-  return data;
 }
 
-function normalizeChains(data) {
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.chains)) return data.chains;
-  return [];
-}
+function renderToTokenDropdown() {
+  const list = tokensFor(toChain);
+  const items = list.length
+    ? list.map(t => `
+      <div class="dropdown-item" data-symbol="${t.symbol}">
+        <img src="${safeLogo(t.logo)}" onerror="this.onerror=null;this.src='${FALLBACK_LOGO}'" />
+        <span>${t.symbol}</span>
+      </div>
+    `).join("")
+    : `<div class="dropdown-item" style="cursor:default;color:#6c7488">No known tokens yet</div>`;
 
-function normalizeTokens(data) {
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.tokens)) return data.tokens;
-  return [];
-}
+  toTokenDropdown.innerHTML = items + ADD_TOKEN_ROW("to");
 
-function getChainName(chain) {
-  return chain?.name || chain?.chainName || `Chain ${chain?.chainId ?? ""}`;
-}
+  toTokenDropdown.querySelectorAll(".dropdown-item[data-symbol]").forEach(item => {
+    item.addEventListener("click", () => {
+      currentToToken = list.find(t => t.symbol === item.dataset.symbol);
+      setImg("toTokenLogo", currentToToken.logo);
+      document.getElementById("toTokenName").textContent = currentToToken.symbol;
+      updateReceiveEstimate();
+      toTokenDropdown.classList.remove("show");
+    });
+  });
 
-function getTokenSymbol(token) {
-  return token?.symbol || token?.name || "Token";
-}
-
-function getTokenAddress(token) {
-  return token?.address || token?.tokenAddress || token?.mainnetAddress || "";
-}
-
-function getTokenDecimals(token) {
-  return Number(token?.decimals ?? 18);
-}
-
-function getTokenLogo(token) {
-  return token?.logoURI || token?.logoUrl || token?.image || "";
-}
-
-function renderChainOptions() {
-  const options = chains.map((chain) => {
-    const chainId = chain.chainId ?? chain.id;
-    const name = getChainName(chain);
-    return `<option value="${chainId}">${name}</option>`;
-  }).join("");
-
-  fromChainEl.innerHTML = options;
-  toChainEl.innerHTML = options;
-
-  if (chains.length >= 2) {
-    fromChainEl.value = String(chains[0].chainId ?? chains[0].id);
-    toChainEl.value = String(chains[1].chainId ?? chains[1].id);
-  } else if (chains.length === 1) {
-    const only = String(chains[0].chainId ?? chains[0].id);
-    fromChainEl.value = only;
-    toChainEl.value = only;
+  const addBtn = document.getElementById("toCustomAddBtn");
+  if (addBtn) {
+    addBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const addr = document.getElementById("toCustomAddr").value.trim();
+      if (!addr || addr.length < 8) {
+        alert("Paste a valid contract address");
+        return;
+      }
+      const symbol = addr.slice(0, 4).toUpperCase() + "…" + addr.slice(-4);
+      const newToken = { symbol, logo: FALLBACK_LOGO, price: 0, custom: true, address: addr };
+      if (!TOKENS_BY_CHAIN[toChain.id]) TOKENS_BY_CHAIN[toChain.id] = [];
+      TOKENS_BY_CHAIN[toChain.id].push(newToken);
+      currentToToken = newToken;
+      setImg("toTokenLogo", newToken.logo);
+      document.getElementById("toTokenName").textContent = newToken.symbol;
+      updateReceiveEstimate();
+      toTokenDropdown.classList.remove("show");
+    });
   }
 }
 
-function renderTokenOptions(chainId) {
-  const tokens = tokensByChain[String(chainId)] || [];
-  tokenEl.innerHTML = tokens.map((token, i) => {
-    const symbol = getTokenSymbol(token);
-    const address = getTokenAddress(token);
-    const logo = getTokenLogo(token);
-    const display = logo ? `${symbol} • logo` : symbol;
-    return `<option value="${address}" data-index="${i}">${display}</option>`;
-  }).join("");
-
-  updateActionState();
-}
-
-function selectedToken() {
-  const chainId = fromChainEl.value;
-  const tokens = tokensByChain[String(chainId)] || [];
-  return tokens.find((t) => getTokenAddress(t) === tokenEl.value) || null;
-}
-
-async function loadChains() {
-  setStatus("Loading supported chains...");
-  const data = await apiJson("/api/chains");
-  chains = normalizeChains(data);
-
-  if (!chains.length) {
-    throw new Error("No supported chains returned from API");
+function checkLiquidity() {
+  const badge = document.getElementById("liqBadge");
+  if (fromChain.id === toChain.id) {
+    badge.className = "liq-badge none";
+    badge.textContent = "● Pick two different chains";
+  } else if (fromChain.noRoute || toChain.noRoute) {
+    badge.className = "liq-badge none";
+    badge.textContent = "● No route — chain not yet live on Across";
+  } else {
+    badge.className = "liq-badge good";
+    badge.textContent = "● Liquidity OK";
   }
-
-  renderChainOptions();
-  setStatus("");
 }
 
-async function loadTokens(chainId) {
-  if (!chainId) return;
-  if (tokensByChain[String(chainId)]) {
-    renderTokenOptions(chainId);
+function sanitizeAmountInput() {
+  let v = amountEl.value.replace(",", ".");
+  v = v.replace(/[^0-9.]/g, "");
+  const parts = v.split(".");
+  if (parts.length > 2) v = parts[0] + "." + parts.slice(1).join("");
+  amountEl.value = v;
+}
+
+function updateUsd() {
+  sanitizeAmountInput();
+  const amt = parseFloat(amountEl.value || "0") || 0;
+  const usd = (amt * (currentToken.price || 0)).toFixed(2);
+  fromUsdEl.textContent = `≈ $${usd}`;
+  sendSummaryEl.textContent = `${amt} ${currentToken.symbol} (~$${usd})`;
+  updateReceiveEstimate();
+}
+
+const FEE_RATE = 0.0018;
+
+function updateReceiveEstimate() {
+  const amt = parseFloat(amountEl.value || "0") || 0;
+  const sendUsd = amt * (currentToken.price || 0);
+  const receiveUsd = sendUsd * (1 - FEE_RATE);
+  const toPrice = (currentToToken && currentToToken.price) || 0;
+  const receiveAmt = toPrice > 0 ? (receiveUsd / toPrice) : 0;
+
+  document.getElementById("receiveAmount").textContent =
+    toPrice > 0 ? receiveAmt.toFixed(6).replace(/0+$/, "").replace(/\.$/, "") : "-";
+  document.getElementById("toUsd").textContent = `≈ $${receiveUsd.toFixed(2)}`;
+}
+
+document.getElementById("fromChainPill").addEventListener("click", (e) => {
+  e.stopPropagation();
+  toDropdown.classList.remove("show");
+  tokenDropdown.classList.remove("show");
+  toTokenDropdown.classList.remove("show");
+  fromDropdown.classList.toggle("show");
+});
+
+document.getElementById("toChainPill").addEventListener("click", (e) => {
+  e.stopPropagation();
+  fromDropdown.classList.remove("show");
+  tokenDropdown.classList.remove("show");
+  toTokenDropdown.classList.remove("show");
+  toDropdown.classList.toggle("show");
+});
+
+document.getElementById("tokenPill").addEventListener("click", (e) => {
+  e.stopPropagation();
+  fromDropdown.classList.remove("show");
+  toDropdown.classList.remove("show");
+  toTokenDropdown.classList.remove("show");
+  renderTokenDropdown();
+  tokenDropdown.classList.toggle("show");
+});
+
+document.getElementById("toTokenPill").addEventListener("click", (e) => {
+  e.stopPropagation();
+  fromDropdown.classList.remove("show");
+  toDropdown.classList.remove("show");
+  tokenDropdown.classList.remove("show");
+  renderToTokenDropdown();
+  toTokenDropdown.classList.toggle("show");
+});
+
+document.addEventListener("click", () => {
+  fromDropdown.classList.remove("show");
+  toDropdown.classList.remove("show");
+  tokenDropdown.classList.remove("show");
+  toTokenDropdown.classList.remove("show");
+});
+
+[fromDropdown, toDropdown, tokenDropdown, toTokenDropdown].forEach(d => {
+  d.addEventListener("click", (e) => e.stopPropagation());
+});
+
+document.getElementById("flipBtn").addEventListener("click", () => {
+  const oldFrom = fromChain;
+  const oldTo = toChain;
+  const oldFromToken = currentToken;
+  const oldToToken = currentToToken;
+
+  setFromChain(oldTo);
+  setToChain(oldFrom);
+
+  currentToken = oldToToken || tokensFor(fromChain)[0] || { symbol: "-", logo: FALLBACK_LOGO, price: 0 };
+  currentToToken = oldFromToken || tokensFor(toChain)[0] || { symbol: "-", logo: FALLBACK_LOGO, price: 0 };
+
+  setImg("tokenLogo", currentToken.logo);
+  document.getElementById("tokenName").textContent = currentToken.symbol;
+  setImg("toTokenLogo", currentToToken.logo);
+  document.getElementById("toTokenName").textContent = currentToToken.symbol;
+
+  updateUsd();
+  updateReceiveEstimate();
+});
+
+amountEl.addEventListener("input", updateUsd);
+
+document.getElementById("confirmBtn").addEventListener("click", () => {
+  const sender = document.getElementById("senderAddr").value.trim();
+  const receiver = document.getElementById("receiverAddr").value.trim();
+
+  if (!sender || !receiver) {
+    statusEl.style.color = "#f0616b";
+    statusEl.textContent = "Enter both sender and receiver addresses first.";
     return;
   }
 
-  setStatus("Loading tokens...");
-  const data = await apiJson(`/api/tokens?chainId=${encodeURIComponent(chainId)}`);
-  const tokens = normalizeTokens(data);
-
-  tokensByChain[String(chainId)] = tokens;
-  renderTokenOptions(chainId);
-  setStatus("");
-}
-
-function updateActionState() {
-  const hasFrom = !!fromChainEl.value;
-  const hasTo = !!toChainEl.value;
-  const hasToken = !!tokenEl.value;
-  const amount = Number(amountEl.value);
-  const validAmount = Number.isFinite(amount) && amount > 0;
-
-  quoteBtn.disabled = !(hasFrom && hasTo && hasToken && validAmount);
-}
-
-function quoteSummaryHtml(quote, token) {
-  const outAmount =
-    quote?.quote?.minOutputAmount ??
-    quote?.minOutputAmount ??
-    quote?.expectedOutputAmount ??
-    null;
-
-  const fees =
-    quote?.fees?.total ??
-    quote?.fees?.totalRelayFee?.amount ??
-    quote?.totalFee ??
-    null;
-
-  const fillTime =
-    quote?.expectedFillTime ??
-    quote?.estimatedFillTimeSec ??
-    null;
-
-  const symbol = getTokenSymbol(token);
-  const decimals = getTokenDecimals(token);
-
-  let formattedOut = "-";
-  if (outAmount != null) {
-    try {
-      formattedOut = ethers.formatUnits(BigInt(outAmount), decimals);
-    } catch {
-      formattedOut = String(outAmount);
-    }
+  if (fromChain.id === toChain.id) {
+    statusEl.style.color = "#f0616b";
+    statusEl.textContent = "Pick two different chains.";
+    return;
   }
 
-  return `
-    <div><strong>Token:</strong> ${symbol}</div>
-    <div><strong>Min received:</strong> ${formatAmount(formattedOut, 6)} ${symbol}</div>
-    <div><strong>Estimated fill:</strong> ${fillTime ? `${fillTime}s` : "-"}</div>
-    <div><strong>Fees:</strong> ${fees ?? "-"}</div>
-  `;
-}
-
-async function connectWallet() {
-  if (!window.ethereum) {
-    throw new Error("No wallet found. Install MetaMask or another EVM wallet.");
+  if (fromChain.noRoute || toChain.noRoute) {
+    statusEl.style.color = "#f0616b";
+    statusEl.textContent = "This route is not live on Across yet.";
+    return;
   }
 
-  provider = new ethers.BrowserProvider(window.ethereum);
-  await provider.send("eth_requestAccounts", []);
-  signer = await provider.getSigner();
-  userAddress = await signer.getAddress();
-  setWalletConnected(userAddress);
-
-  if (!recipientEl.value) {
-    recipientEl.value = userAddress;
-  }
-
-  setStatus("Wallet connected");
-}
-
-async function getQuote() {
-  const token = selectedToken();
-  if (!token) throw new Error("Select a token");
-
-  const originChainId = fromChainEl.value;
-  const destinationChainId = toChainEl.value;
-  const inputToken = getTokenAddress(token);
-  const outputToken = getTokenAddress(token);
-  const decimals = getTokenDecimals(token);
-  const amountRaw = ethers.parseUnits(amountEl.value, decimals).toString();
-  const recipient = recipientEl.value || userAddress || "";
-
-  setStatus("Fetching quote...");
-  quoteBtn.disabled = true;
-  executeBtn.disabled = true;
-  executeBtn.classList.add("hidden");
-
-  const params = new URLSearchParams({
-    originChainId,
-    destinationChainId,
-    inputToken,
-    outputToken,
-    amount: amountRaw,
-    depositor: userAddress || "",
-    recipient
-  });
-
-  const quote = await apiJson(`/api/quote?${params.toString()}`);
-  currentQuote = quote;
-
-  quoteBox.innerHTML = quoteSummaryHtml(quote, token);
-  quoteBox.classList.remove("hidden");
-  executeBtn.classList.remove("hidden");
-  executeBtn.disabled = !userAddress;
-
-  setStatus("Quote ready");
-  updateActionState();
-}
-
-async function executeBridge() {
-  if (!currentQuote) throw new Error("Get a quote first");
-  if (!signer) throw new Error("Connect wallet first");
-
-  const approvalTxns = currentQuote.approvalTxns || currentQuote?.quote?.approvalTxns || [];
-  const swapTx = currentQuote.swapTx || currentQuote?.quote?.swapTx;
-
-  if (!swapTx) {
-    throw new Error("No executable swap transaction returned");
-  }
-
-  setStatus("Sending approvals...");
-  executeBtn.disabled = true;
-
-  for (const approval of approvalTxns) {
-    const tx = await signer.sendTransaction({
-      to: approval.to,
-      data: approval.data,
-      value: approval.value ? BigInt(approval.value) : 0n
-    });
-    await tx.wait();
-  }
-
-  setStatus("Sending bridge transaction...");
-  const tx = await signer.sendTransaction({
-    to: swapTx.to,
-    data: swapTx.data,
-    value: swapTx.value ? BigInt(swapTx.value) : 0n
-  });
-
-  quoteBox.innerHTML += `<div><strong>Submitted:</strong> ${tx.hash}</div>`;
-  setStatus("Bridge submitted");
-  executeBtn.disabled = false;
-}
-
-connectBtn.addEventListener("click", async () => {
-  try {
-    await connectWallet();
-  } catch (err) {
-    setStatus(err.message);
-  }
+  statusEl.style.color = "#7d859a";
+  statusEl.textContent = `Would bridge ${amountEl.value} ${currentToken.symbol} from ${fromChain.name} (${sender.slice(0,6)}...) to ${toChain.name} (${receiver.slice(0,6)}...)`;
 });
 
-fromChainEl.addEventListener("change", async () => {
-  try {
-    await loadTokens(fromChainEl.value);
-    updateActionState();
-  } catch (err) {
-    setStatus(err.message);
-  }
+document.getElementById("addChainLink").addEventListener("click", () => {
+  document.getElementById("addChainModal").classList.add("show");
 });
 
-toChainEl.addEventListener("change", updateActionState);
-tokenEl.addEventListener("change", updateActionState);
-amountEl.addEventListener("input", updateActionState);
-
-quoteBtn.addEventListener("click", async () => {
-  try {
-    await getQuote();
-  } catch (err) {
-    setStatus(err.message);
-    quoteBtn.disabled = false;
-  }
+document.getElementById("ccCancel").addEventListener("click", () => {
+  document.getElementById("addChainModal").classList.remove("show");
 });
 
-executeBtn.addEventListener("click", async () => {
-  try {
-    await executeBridge();
-  } catch (err) {
-    setStatus(err.message);
-    executeBtn.disabled = false;
+document.getElementById("ccAdd").addEventListener("click", () => {
+  const name = document.getElementById("ccName").value.trim();
+  const id = document.getElementById("ccId").value.trim();
+  const rpc = document.getElementById("ccRpc").value.trim();
+
+  if (!name || !id || !rpc) {
+    alert("Fill all fields");
+    return;
   }
+
+  const chainId = "custom-" + id;
+  const newChain = {
+    id: chainId,
+    name,
+    chainIdNum: id,
+    rpc,
+    logo: FALLBACK_LOGO,
+    custom: true,
+    noRoute: true
+  };
+
+  CHAINS.push(newChain);
+  TOKENS_BY_CHAIN[chainId] = [];
+  refreshDropdowns();
+  setToChain(newChain);
+
+  document.getElementById("addChainModal").classList.remove("show");
+  document.getElementById("ccName").value = "";
+  document.getElementById("ccId").value = "";
+  document.getElementById("ccRpc").value = "";
 });
 
-async function init() {
-  try {
-    setWalletDisconnected();
-    await loadChains();
-    await loadTokens(fromChainEl.value);
-    updateActionState();
-  } catch (err) {
-    setStatus(err.message);
-  }
-}
-
-init();
+setFromChain(CHAINS[0]);
+setToChain(CHAINS[2]);
+refreshDropdowns();
+setImg("tokenLogo", currentToken.logo);
+document.getElementById("tokenName").textContent = currentToken.symbol;
+setImg("toTokenLogo", currentToToken.logo);
+document.getElementById("toTokenName").textContent = currentToToken.symbol;
+updateUsd();
+updateReceiveEstimate();
