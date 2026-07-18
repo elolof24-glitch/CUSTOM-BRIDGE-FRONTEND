@@ -1,1 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Custom Across Bridge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="bg-glow"></div>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo-dot"></div>
+        <span>Bridge</span>
+      </div>
+      <button id="connectBtn" class="wallet-btn">
+        <span class="dot offline" id="walletDot"></span>
+        <span id="walletLabel">Connect Wallet</span>
+      </button>
+    </header>
 
+    <main class="card">
+      <div class="tabs">
+        <div class="tab active">Swap</div>
+      </div>
+
+      <div class="field-group panel">
+        <div class="field-row">
+          <span class="field-label">From</span>
+          <select id="fromChain" class="chain-select"></select>
+        </div>
+        <div class="amount-row">
+          <input id="amount" type="number" placeholder="0.0" class="amount-input" />
+          <select id="token" class="token-select"></select>
+        </div>
+      </div>
+
+      <div class="swap-arrow">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M12 5v14M19 12l-7 7-7-7"/>
+        </svg>
+      </div>
+
+      <div class="field-group panel">
+        <div class="field-row">
+          <span class="field-label">To</span>
+          <select id="toChain" class="chain-select"></select>
+        </div>
+        <div class="field-row">
+          <span class="field-label">Recipient</span>
+          <input id="recipient" type="text" placeholder="0x... (defaults to you)" class="recipient-input" />
+        </div>
+      </div>
+
+      <div id="quoteBox" class="quote-box hidden"></div>
+
+      <button id="quoteBtn" class="primary-btn" disabled>Get Quote</button>
+      <button id="executeBtn" class="primary-btn success hidden" disabled>Confirm Bridge</button>
+
+      <div id="status" class="status-line"></div>
+    </main>
+
+    <footer class="footnote">Powered by Across Protocol API</footer>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
